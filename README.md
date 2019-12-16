@@ -18,7 +18,16 @@ Next, you will need to enter docker directory and copy ``.env.dist``
 
 ```bash
 cp .env.dist .env
+cp ../backend/.env.dist ../backend/.env
+cp ../frontend/.env.dist ../frontend/.env
 ```
+
+Edit copied env files. 
+
+POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_PORT, POSTGRES_DB vars from the .env file  must match to var DATABASE_URL in the ../backend/.env
+In DATABASE_URL please set host  for db as ergonode-postgres.
+API_PORT env in the file ../frontend/.env.dist  must be set to 8001 
+
 
 Remember to setup correct ports in backend and frontend application.
 
@@ -27,6 +36,22 @@ Now you can start start docker by simple command
 ```bash
 bin/docker on
 ```
+
+In terminal execute command which configure application (Available phing commands):
+```
+docker-compose exec ergonode-php bin/phing build
+```
+
+If you need basic data in terminal execute command:
+```
+docker-compose exec ergonode-php bin/phing database:fixture
+```
+
+To execute other backend commands you can execute command:
+```
+docker-compose exec ergonode-php your command and parameters
+```
+
 
 Enjoy :)
 

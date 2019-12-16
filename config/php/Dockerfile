@@ -5,7 +5,7 @@ WORKDIR "."
 
 # Basic tools
 RUN apt-get -y update \
-    && apt-get -y install git curl htop nano zip unzip librabbitmq-dev libpq-dev \
+    && apt-get -y install git curl htop nano zip unzip librabbitmq-dev libpq-dev acl graphviz \
     && pecl install amqp-1.9.4
 
 # PHP extensionns
@@ -16,3 +16,9 @@ RUN docker-php-ext-install -j$(nproc) pdo pdo_pgsql \
 # Composer
 ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+RUN chmod +x /usr/local/bin/docker-entrypoint
+
+ENTRYPOINT ["docker-entrypoint"]
