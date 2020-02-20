@@ -5,35 +5,29 @@
 
 # https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
 
-FROM php:7.4-fpm-alpine as php
+FROM php:7.4-fpm as php
 
 ENV COMPOSER_ALLOW_SUPERUSER=1
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 
 # required packages and PHP extensionns
+# required packages and PHP extensionns
 RUN set -eux ; \
-    apk add  --no-cache git  \
+    apt-get -y update; \
+    apt-get -y --no-install-recommends install git  \
         zip \
         unzip \
         curl \
-        rabbitmq-c \
-        libpq \
-        icu-libs \
+        librabbitmq4 \
+        librabbitmq-dev \
+        libpq5 \
+        libpq-dev \
+        libicu-dev \
         graphviz \
         acl \
-        fcgi  \
-        bash ; \
-    apk add --no-cache --virtual .fetch-deps \
-        icu-dev \
-        postgresql-dev \
-        rabbitmq-c-dev \
-        autoconf \
-        musl-dev \
-        gcc \
-        g++ \
-        make \
-        pkgconf \
-        file ; \
+        libfcgi-bin ; \
+    apt-get clean ; \
+    rm -rf /var/lib/apt/lists/* ; \
     docker-php-ext-install -j$(nproc) \
     pdo  \
     pdo_pgsql \
@@ -107,8 +101,8 @@ FROM php as php_production
 RUN set -eux; \
     pecl uninstall xdebug ; \
     rm -f /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini; \
-    # remove unnecessary dev packages
-    apk del --no-network .fetch-deps ; \
+    apt-get purge -y "*-dev" ; \
+    apt-get autoremove -y  ; \
     php --version ; \
 	rm -f .env \
      .env.test \
@@ -174,7 +168,7 @@ RUN  set -eux; \
 
 CMD ["npm", "run", "dev"]
 
-FROM node as nuxtjs_production
+FROM nuxtjs as nuxtjs_production
 
 WORKDIR /srv/app
 
