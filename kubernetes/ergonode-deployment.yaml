@@ -1,0 +1,88 @@
+
+# kubectl apply -f ergonode-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ergonode-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ergonode
+  template:
+    metadata:
+      labels:
+        app: ergonode
+    spec:
+      containers:
+        - name: php
+          image: 10.0.0.3:5000/ergonode/php
+          env:
+            - name: APP_ENV
+              value: prod
+            - name: APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: ergonode-app-secret
+                  key: secret
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ergonode-database-url
+                  key: url
+            - name: JWT_PRIVATE_KEY_PATH
+              value: config/jwt/private.pem
+            - name: JWT_PUBLIC_KEY_PATH
+              value: config/jwt/public.pem
+            - name: JWT_PASSPHRASE
+              valueFrom:
+                secretKeyRef:
+                  name: ergonode-jwr-passpharse
+                  key: url
+            - name: JWT_TOKEN_TTL
+              value: 3600
+            - name: CORS_ALLOW_ORIGIN
+              value: ^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?
+            - name: APP_HOST
+              value: localhost
+            - name: APP_SCHEME
+              value: https
+            - name: APP_URL
+              value: http://localhost
+            - name: TRUSTED_HOSTS
+              value: ^localhost|10\.0\.0\.3$
+            - name: TRUSTED_PROXIES
+              value: 10.0.0.1/24,127.0.0.0/8
+          volumeMounts:
+            - mountPath: /srv/app/config/jwt
+              name: ergonode
+              subPath: jwt
+            - mountPath: /srv/app/import
+              name: ergonode
+              subPath: import
+            - mountPath: /srv/app/public/mutimedia
+              name: ergonode
+              subPath: import
+        - name: nuxtjs
+          image: 10.0.0.3:5000/ergonode/nuxtjs
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: API_BASE_URL
+              value: http://10.0.0.3/api/v1
+        - name: nginx
+          image: 10.0.0.3:5000/ergonode/nginx
+          env:
+            - name: APP_ENV
+              value: prod
+            - name: PHP_HOST
+              value: php
+            - name: NUXTJS_HOST
+              value: nuxtjs
+            - name: DOLLAR
+              value: '$$'
+      volumes:
+        - name: ergonode
+          hostPath:
+            path: /tmp/data
+
